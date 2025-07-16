@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One-Click Resume Builder</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- html2pdf.js for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e0e0e0;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Resume Template Base Styles */
+        .resume-template {
+            background-color: white;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-height: 297mm; /* A4 height approx */
+            width: 210mm; /* A4 width approx */
+            margin: 0 auto;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+        }
+
+        .resume-template h1, .resume-template h2, .resume-template h3 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .resume-template p, .resume-template li {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Template 1: Modern Minimalist */
+        .template-modern .header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-color, #3b82f6);
+        }
+        .template-modern .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color, #3b82f6);
+        }
+        .template-modern .header p {
+            font-size: 1rem;
+            color: #555;
+        }
+        .template-modern .section {
+            margin-bottom: 1.5rem;
+        }
+        .template-modern .section-title {
+            font-size: 1.3rem;
+            color: var(--primary-color, #3b82f6);
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 0.3rem;
+            margin-bottom: 1rem;
+        }
+        .template-modern .experience-item, .template-modern .education-item {
+            margin-bottom: 1rem;
+        }
+        .template-modern .job-title, .template-modern .degree {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .template-modern .company-name, .template-modern .university-name {
+            font-style: italic;
+            color: #666;
+            margin-left: 0.5rem;
+        }
+        .template-modern .dates {
+            float: right;
+            color: #777;
+        }
+        .template-modern .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .template-modern .skill-item {
+            background-color: #e0e7ff; /* Light blue */
+            color: #3b82f6;
+            padding: 0.3rem 0.7rem;
+            border-radius: 9999px; /* Full rounded */
+            font-size: 0.85rem;
+        }
+
+        /* Template 2: Professional Sidebar */
+        .template-sidebar {
+            display: flex;
+            flex-direction: row;
+        }
+        .template-sidebar .sidebar {
+            width: 30%;
+            background-color: var(--primary-color, #3b82f6);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .template-sidebar .main-content {
+            width: 70%;
+            padding: 1.5rem 2rem;
+        }
+        .template-sidebar .sidebar h2 {
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+            padding-bottom: 0.3rem;
+        }
+        .template-sidebar .sidebar p, .template-sidebar .sidebar li {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .template-sidebar .sidebar .contact-info p {
+            margin-bottom: 0.5rem;
+        }
+        .template-sidebar .sidebar .skill-item {
+            margin-bottom: 0.3rem;
+        }
+        .template-sidebar .main-content .header {
+            margin-bottom: 1.5rem;
+        }
+        .template-sidebar .main-content .header h1 {
+            font-size: 2.2rem;
+            color: var(--primary-color, #3b82f6);
+            margin-bottom: 0.3rem;
+        }
+        .template-sidebar .main-content .header p {
+            font-size: 1.1rem;
+            color: #555;
+        }
+        .template-sidebar .main-content .section-title {
+            font-size: 1.3rem;
+            color: var(--primary-color, #3b82f6);
+            margin-bottom: 1rem;
+        }
+        .template-sidebar .main-content .experience-item, .template-sidebar .main-content .education-item {
+            margin-bottom: 1rem;
+        }
+        .template-sidebar .main-content .job-title, .template-sidebar .main-content .degree {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .template-sidebar .main-content .company-name, .template-sidebar .main-content .university-name {
+            font-style: italic;
+            color: #666;
+            margin-left: 0.5rem;
+        }
+        .template-sidebar .main-content .dates {
+            float: right;
+            color: #777;
+        }
+        .template-sidebar .main-content ul {
+            list-style-type: disc;
+            margin-left: 1.2rem;
+        }
+        .template-sidebar .main-content ul li {
+            margin-bottom: 0.2rem;
+        }
+
+        /* Theme Colors */
+        .theme-blue { --primary-color: #3b82f6; } /* Tailwind blue-500 */
+        .theme-green { --primary-color: #10b981; } /* Tailwind emerald-500 */
+        .theme-purple { --primary-color: #8b5cf6; } /* Tailwind violet-500 */
+        .theme-red { --primary-color: #ef4444; } /* Tailwind red-500 */
+        .theme-gray { --primary-color: #6b7280; } /* Tailwind gray-500 */
+
+        /* Utility for hiding sections if no content */
+        .hidden-if-empty:empty {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden md:flex">
+        <!-- Input Form Section -->
+        <div class="w-full md:w-1/2 p-6 md:p-8 bg-gray-50 overflow-y-auto max-h-screen-md custom-scrollbar">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Resume Builder</h2>
+
+            <!-- Personal Information -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h3 class="text-xl font-semibold text-gray-700 mb-4">Personal Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="fullName" class="block text-sm font-medium text-gray-700">Full Name</label>
+                        <input type="text" id="fullName" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="John Doe">
+                    </div>
+                    <div>
+                        <label for="title" class="block text-sm font-medium text-gray-700">Title / Profession</label>
+                        <input type="text" id="title" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Software Engineer">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="email" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="john.doe@example.com">
+                    </div>
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700">Phone</label>
+                        <input type="tel" id="phone" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="+1 (123) 456-7890">
+                    </div>
+                    <div class="col-span-1 md:col-span-2">
+                        <label for="linkedin" class="block text-sm font-medium text-gray-700">LinkedIn Profile (Optional)</label>
+                        <input type="url" id="linkedin" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="https://linkedin.com/in/johndoe">
+                    </div>
+                    <div class="col-span-1 md:col-span-2">
+                        <label for="github" class="block text-sm font-medium text-gray-700">GitHub Profile (Optional)</label>
+                        <input type="url" id="github" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="https://github.com/johndoe">
+                    </div>
+                    <div class="col-span-1 md:col-span-2">
+                        <label for="summary" class="block text-sm font-medium text-gray-700">Professional Summary</label>
+                        <textarea id="summary" rows="4" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="A highly motivated and results-oriented professional with X years of experience..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Experience Section -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h3 class="text-xl font-semibold text-gray-700 mb-4 flex justify-between items-center">
+                    Work Experience
+                    <button id="addExperience" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-full text-sm shadow-md transition duration-200 ease-in-out">Add</button>
+                </h3>
+                <div id="experienceContainer">
+                    <!-- Experience items will be added here by JS -->
+                    <div class="experience-item border border-gray-200 rounded-md p-4 mb-4 bg-gray-50 relative">
+                        <button class="remove-item absolute top-2 right-2 text-red-500 hover:text-red-700 text-lg font-bold">&times;</button>
+                        <div class="mb-2">
+                            <label class="block text-sm font-medium text-gray-700">Job Title</label>
+                            <input type="text" class="job-title mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="Software Engineer">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Company</label>
+                                <input type="text" class="company-name mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="Tech Solutions Inc.">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Location</label>
+                                <input type="text" class="job-location mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="New York, NY">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Start Date</label>
+                                <input type="month" class="start-date mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">End Date (or 'Present')</label>
+                                <input type="month" class="end-date mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Responsibilities (one per line)</label>
+                            <textarea rows="3" class="responsibilities mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="- Developed and maintained web applications
+- Collaborated with cross-functional teams"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Education Section -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h3 class="text-xl font-semibold text-gray-700 mb-4 flex justify-between items-center">
+                    Education
+                    <button id="addEducation" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-full text-sm shadow-md transition duration-200 ease-in-out">Add</button>
+                </h3>
+                <div id="educationContainer">
+                    <!-- Education items will be added here by JS -->
+                    <div class="education-item border border-gray-200 rounded-md p-4 mb-4 bg-gray-50 relative">
+                        <button class="remove-item absolute top-2 right-2 text-red-500 hover:text-red-700 text-lg font-bold">&times;</button>
+                        <div class="mb-2">
+                            <label class="block text-sm font-medium text-gray-700">Degree/Program</label>
+                            <input type="text" class="degree mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="Master of Science in Computer Science">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">University/Institution</label>
+                                <input type="text" class="university-name mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="University of Example">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Location</label>
+                                <input type="text" class="education-location mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="City, State">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Graduation Year</label>
+                                <input type="text" class="graduation-year mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="2023">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">GPA (Optional)</label>
+                                <input type="text" class="gpa mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="3.8/4.0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skills Section -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h3 class="text-xl font-semibold text-gray-700 mb-4">Skills</h3>
+                <div>
+                    <label for="skills" class="block text-sm font-medium text-gray-700">Skills (comma-separated)</label>
+                    <textarea id="skills" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="JavaScript, React, Node.js, Python, AWS, SQL"></textarea>
+                </div>
+            </div>
+
+            <!-- Projects Section -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h3 class="text-xl font-semibold text-gray-700 mb-4 flex justify-between items-center">
+                    Projects
+                    <button id="addProject" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-full text-sm shadow-md transition duration-200 ease-in-out">Add</button>
+                </h3>
+                <div id="projectContainer">
+                    <!-- Project items will be added here by JS -->
+                    <div class="project-item border border-gray-200 rounded-md p-4 mb-4 bg-gray-50 relative">
+                        <button class="remove-item absolute top-2 right-2 text-red-500 hover:text-red-700 text-lg font-bold">&times;</button>
+                        <div class="mb-2">
+                            <label class="block text-sm font-medium text-gray-700">Project Name</label>
+                            <input type="text" class="project-name mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="My Awesome Project">
+                        </div>
+                        <div class="mb-2">
+                            <label class="block text-sm font-medium text-gray-700">Project Link (Optional)</label>
+                            <input type="url" class="project-link mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="https://github.com/myproject">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Description (one per line)</label>
+                            <textarea rows="3" class="project-description mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="- Built a full-stack web application
+- Implemented user authentication and data storage"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings & Download -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h3 class="text-xl font-semibold text-gray-700 mb-4">Settings</h3>
+                <div class="mb-4">
+                    <label for="templateSelect" class="block text-sm font-medium text-gray-700">Choose Template</label>
+                    <select id="templateSelect" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="template-modern">Modern Minimalist</option>
+                        <option value="template-sidebar">Professional Sidebar</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Choose Theme Color</label>
+                    <div class="flex gap-3">
+                        <button class="color-picker-btn w-8 h-8 rounded-full bg-blue-500 border-2 border-transparent focus:outline-none focus:border-blue-700 transition-all duration-200" data-color="theme-blue" title="Blue"></button>
+                        <button class="color-picker-btn w-8 h-8 rounded-full bg-emerald-500 border-2 border-transparent focus:outline-none focus:border-emerald-700 transition-all duration-200" data-color="theme-green" title="Green"></button>
+                        <button class="color-picker-btn w-8 h-8 rounded-full bg-violet-500 border-2 border-transparent focus:outline-none focus:border-violet-700 transition-all duration-200" data-color="theme-purple" title="Purple"></button>
+                        <button class="color-picker-btn w-8 h-8 rounded-full bg-red-500 border-2 border-transparent focus:outline-none focus:border-red-700 transition-all duration-200" data-color="theme-red" title="Red"></button>
+                        <button class="color-picker-btn w-8 h-8 rounded-full bg-gray-500 border-2 border-transparent focus:outline-none focus:border-gray-700 transition-all duration-200" data-color="theme-gray" title="Gray"></button>
+                    </div>
+                </div>
+                <button id="downloadPdf" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition duration-300 ease-in-out transform hover:scale-105">Download as PDF</button>
+            </div>
+        </div>
+
+        <!-- Resume Preview Section -->
+        <div class="w-full md:w-1/2 p-4 md:p-8 bg-gray-100 flex justify-center items-start overflow-y-auto custom-scrollbar">
+            <div id="resumePreview" class="resume-template template-modern theme-blue">
+                <!-- Resume content will be dynamically generated here -->
+                <div class="header">
+                    <h1 id="previewFullName">John Doe</h1>
+                    <p id="previewTitle">Software Engineer</p>
+                    <p id="previewContact" class="text-sm text-gray-600 mt-2">
+                        <span id="previewEmail">john.doe@example.com</span> | <span id="previewPhone">+1 (123) 456-7890</span>
+                        <span id="previewLinkedIn" class="ml-2 hidden"> | <a href="#" target="_blank" class="text-blue-600 hover:underline">LinkedIn</a></span>
+                        <span id="previewGitHub" class="ml-2 hidden"> | <a href="#" target="_blank" class="text-blue-600 hover:underline">GitHub</a></span>
+                    </p>
+                </div>
+
+                <div class="section hidden-if-empty">
+                    <h2 class="section-title">Summary</h2>
+                    <p id="previewSummary"></p>
+                </div>
+
+                <div class="section hidden-if-empty">
+                    <h2 class="section-title">Work Experience</h2>
+                    <div id="previewExperience">
+                        <!-- Experience items will be rendered here -->
+                    </div>
+                </div>
+
+                <div class="section hidden-if-empty">
+                    <h2 class="section-title">Education</h2>
+                    <div id="previewEducation">
+                        <!-- Education items will be rendered here -->
+                    </div>
+                </div>
+
+                <div class="section hidden-if-empty">
+                    <h2 class="section-title">Skills</h2>
+                    <div id="previewSkills" class="skills-list">
+                        <!-- Skills will be rendered here -->
+                    </div>
+                </div>
+
+                <div class="section hidden-if-empty">
+                    <h2 class="section-title">Projects</h2>
+                    <div id="previewProjects">
+                        <!-- Projects will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const $ = (selector) => document.querySelector(selector);
+            const $$ = (selector) => document.querySelectorAll(selector);
+
+            const fullNameInput = $('#fullName');
+            const titleInput = $('#title');
+            const emailInput = $('#email');
+            const phoneInput = $('#phone');
+            const linkedinInput = $('#linkedin');
+            const githubInput = $('#github');
+            const summaryInput = $('#summary');
+            const skillsInput = $('#skills');
+
+            const experienceContainer = $('#experienceContainer');
+            const addExperienceBtn = $('#addExperience');
+            const educationContainer = $('#educationContainer');
+            const addEducationBtn = $('#addEducation');
+            const projectContainer = $('#projectContainer');
+            const addProjectBtn = $('#addProject');
+
+            const templateSelect = $('#templateSelect');
+            const colorPickerBtns = $$('.color-picker-btn');
+            const downloadPdfBtn = $('#downloadPdf');
+
+            const resumePreview = $('#resumePreview');
+            const previewFullName = $('#previewFullName');
+            const previewTitle = $('#previewTitle');
+            const previewEmail = $('#previewEmail');
+            const previewPhone = $('#previewPhone');
+            const previewLinkedIn = $('#previewLinkedIn');
+            const previewGitHub = $('#previewGitHub');
+            const previewSummary = $('#previewSummary');
+            const previewExperience = $('#previewExperience');
+            const previewEducation = $('#previewEducation');
+            const previewSkills = $('#previewSkills');
+            const previewProjects = $('#previewProjects');
+
+            // --- Initial Setup ---
+            // Add one default experience, education, and project item if they are empty
+            if (experienceContainer.children.length === 0) {
+                addExperienceItem();
+            }
+            if (educationContainer.children.length === 0) {
+                addEducationItem();
+            }
+            if (projectContainer.children.length === 0) {
+                addProjectItem();
+            }
+
+            // Set default theme color
+            resumePreview.classList.add('theme-blue');
+            // Mark the default blue button as active
+            $('.color-picker-btn[data-color="theme-blue"]').classList.add('border-blue-700');
+
+
+            // --- Helper Functions ---
+
+            // Function to debounce input to prevent excessive updates
+            const debounce = (func, delay) => {
+                let timeout;
+                return function(...args) {
+                    const context = this;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(context, args), delay);
+                };
+            };
+
+            // Format date for display
+            const formatDate = (dateString) => {
+                if (!dateString) return '';
+                if (dateString.toLowerCase() === 'present') return 'Present';
+                const [year, month] = dateString.split('-');
+                if (!month || !year) return dateString;
+                const date = new Date(year, month - 1);
+                return date.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+            };
+
+            // Update the resume preview
+            const updatePreview = () => {
+                // Personal Info
+                previewFullName.textContent = fullNameInput.value || 'Your Full Name';
+                previewTitle.textContent = titleInput.value || 'Your Title';
+                previewEmail.textContent = emailInput.value || 'your.email@example.com';
+                previewPhone.textContent = phoneInput.value || '+1 (123) 456-7890';
+
+                // LinkedIn
+                if (linkedinInput.value) {
+                    previewLinkedIn.classList.remove('hidden');
+                    previewLinkedIn.querySelector('a').href = linkedinInput.value;
+                } else {
+                    previewLinkedIn.classList.add('hidden');
+                }
+
+                // GitHub
+                if (githubInput.value) {
+                    previewGitHub.classList.remove('hidden');
+                    previewGitHub.querySelector('a').href = githubInput.value;
+                } else {
+                    previewGitHub.classList.add('hidden');
+                }
+
+                // Summary
+                previewSummary.textContent = summaryInput.value;
+                $('#resumePreview .section:has(#previewSummary)').classList.toggle('hidden-if-empty', !summaryInput.value.trim());
+
+
+                // Experience
+                previewExperience.innerHTML = ''; // Clear previous
+                $$('.experience-item').forEach(item => {
+                    const jobTitle = item.querySelector('.job-title').value;
+                    const companyName = item.querySelector('.company-name').value;
+                    const jobLocation = item.querySelector('.job-location').value;
+                    const startDate = item.querySelector('.start-date').value;
+                    const endDate = item.querySelector('.end-date').value;
+                    const responsibilities = item.querySelector('.responsibilities').value.split('\n').filter(line => line.trim() !== '');
+
+                    if (jobTitle || companyName || jobLocation || startDate || endDate || responsibilities.length > 0) {
+                        const expDiv = document.createElement('div');
+                        expDiv.classList.add('experience-item');
+                        expDiv.innerHTML = `
+                            <div class="flex justify-between items-baseline">
+                                <h3 class="job-title">${jobTitle} <span class="company-name">${companyName ? `at ${companyName}` : ''}</span></h3>
+                                <p class="dates">${formatDate(startDate)} - ${formatDate(endDate)}</p>
+                            </div>
+                            <p class="text-sm text-gray-600">${jobLocation}</p>
+                            <ul>
+                                ${responsibilities.map(resp => `<li>${resp}</li>`).join('')}
+                            </ul>
+                        `;
+                        previewExperience.appendChild(expDiv);
+                    }
+                });
+                $('#resumePreview .section:has(#previewExperience)').classList.toggle('hidden-if-empty', previewExperience.children.length === 0);
+
+                // Education
+                previewEducation.innerHTML = ''; // Clear previous
+                $$('.education-item').forEach(item => {
+                    const degree = item.querySelector('.degree').value;
+                    const universityName = item.querySelector('.university-name').value;
+                    const educationLocation = item.querySelector('.education-location').value;
+                    const graduationYear = item.querySelector('.graduation-year').value;
+                    const gpa = item.querySelector('.gpa').value;
+
+                    if (degree || universityName || educationLocation || graduationYear || gpa) {
+                        const eduDiv = document.createElement('div');
+                        eduDiv.classList.add('education-item');
+                        eduDiv.innerHTML = `
+                            <div class="flex justify-between items-baseline">
+                                <h3 class="degree">${degree}</h3>
+                                <p class="dates">${graduationYear}</p>
+                            </div>
+                            <p class="university-name">${universityName} ${educationLocation ? `, ${educationLocation}` : ''}</p>
+                            ${gpa ? `<p class="text-sm text-gray-600">GPA: ${gpa}</p>` : ''}
+                        `;
+                        previewEducation.appendChild(eduDiv);
+                    }
+                });
+                $('#resumePreview .section:has(#previewEducation)').classList.toggle('hidden-if-empty', previewEducation.children.length === 0);
+
+
+                // Skills
+                previewSkills.innerHTML = ''; // Clear previous
+                const skillsArray = skillsInput.value.split(',').map(skill => skill.trim()).filter(skill => skill !== '');
+                skillsArray.forEach(skill => {
+                    const skillSpan = document.createElement('span');
+                    skillSpan.classList.add('skill-item');
+                    skillSpan.textContent = skill;
+                    previewSkills.appendChild(skillSpan);
+                });
+                $('#resumePreview .section:has(#previewSkills)').classList.toggle('hidden-if-empty', skillsArray.length === 0);
+
+
+                // Projects
+                previewProjects.innerHTML = ''; // Clear previous
+                $$('.project-item').forEach(item => {
+                    const projectName = item.querySelector('.project-name').value;
+                    const projectLink = item.querySelector('.project-link').value;
+                    const projectDescription = item.querySelector('.project-description').value.split('\n').filter(line => line.trim() !== '');
+
+                    if (projectName || projectLink || projectDescription.length > 0) {
+                        const projectDiv = document.createElement('div');
+                        projectDiv.classList.add('project-item');
+                        projectDiv.innerHTML = `
+                            <h3 class="font-semibold">${projectName} ${projectLink ? `<a href="${projectLink}" target="_blank" class="text-blue-600 hover:underline text-sm ml-2">(Link)</a>` : ''}</h3>
+                            <ul>
+                                ${projectDescription.map(desc => `<li>${desc}</li>`).join('')}
+                            </ul>
+                        `;
+                        previewProjects.appendChild(projectDiv);
+                    }
+                });
+                $('#resumePreview .section:has(#previewProjects)').classList.toggle('hidden-if-empty', previewProjects.children.length === 0);
+            };
+
+            // Debounced update function
+            const debouncedUpdatePreview = debounce(updatePreview, 300);
+
+            // --- Event Listeners ---
+
+            // Listen for input changes on all form fields
+            $$('input, textarea').forEach(input => {
+                input.addEventListener('input', debouncedUpdatePreview);
+            });
+
+            // Add Experience Item
+            addExperienceBtn.addEventListener('click', () => {
+                addExperienceItem();
+                debouncedUpdatePreview();
+            });
+
+            function addExperienceItem() {
+                const newItem = document.createElement('div');
+                newItem.classList.add('experience-item', 'border', 'border-gray-200', 'rounded-md', 'p-4', 'mb-4', 'bg-gray-50', 'relative');
+                newItem.innerHTML = `
+                    <button class="remove-item absolute top-2 right-2 text-red-500 hover:text-red-700 text-lg font-bold">&times;</button>
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium text-gray-700">Job Title</label>
+                        <input type="text" class="job-title mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="Software Engineer">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Company</label>
+                            <input type="text" class="company-name mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="Tech Solutions Inc.">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Location</label>
+                            <input type="text" class="job-location mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="New York, NY">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Start Date</label>
+                            <input type="month" class="start-date mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">End Date (or 'Present')</label>
+                            <input type="month" class="end-date mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Responsibilities (one per line)</label>
+                        <textarea rows="3" class="responsibilities mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="- Developed and maintained web applications
+- Collaborated with cross-functional teams"></textarea>
+                    </div>
+                `;
+                experienceContainer.appendChild(newItem);
+                newItem.querySelector('.remove-item').addEventListener('click', () => {
+                    newItem.remove();
+                    debouncedUpdatePreview();
+                });
+                newItem.querySelectorAll('input, textarea').forEach(input => {
+                    input.addEventListener('input', debouncedUpdatePreview);
+                });
+            }
+
+            // Add Education Item
+            addEducationBtn.addEventListener('click', () => {
+                addEducationItem();
+                debouncedUpdatePreview();
+            });
+
+            function addEducationItem() {
+                const newItem = document.createElement('div');
+                newItem.classList.add('education-item', 'border', 'border-gray-200', 'rounded-md', 'p-4', 'mb-4', 'bg-gray-50', 'relative');
+                newItem.innerHTML = `
+                    <button class="remove-item absolute top-2 right-2 text-red-500 hover:text-red-700 text-lg font-bold">&times;</button>
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium text-gray-700">Degree/Program</label>
+                        <input type="text" class="degree mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="Master of Science in Computer Science">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">University/Institution</label>
+                            <input type="text" class="university-name mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="University of Example">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Location</label>
+                            <input type="text" class="education-location mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="City, State">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Graduation Year</label>
+                            <input type="text" class="graduation-year mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="2023">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">GPA (Optional)</label>
+                            <input type="text" class="gpa mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="3.8/4.0">
+                        </div>
+                    </div>
+                `;
+                educationContainer.appendChild(newItem);
+                newItem.querySelector('.remove-item').addEventListener('click', () => {
+                    newItem.remove();
+                    debouncedUpdatePreview();
+                });
+                newItem.querySelectorAll('input, textarea').forEach(input => {
+                    input.addEventListener('input', debouncedUpdatePreview);
+                });
+            }
+
+            // Add Project Item
+            addProjectBtn.addEventListener('click', () => {
+                addProjectItem();
+                debouncedUpdatePreview();
+            });
+
+            function addProjectItem() {
+                const newItem = document.createElement('div');
+                newItem.classList.add('project-item', 'border', 'border-gray-200', 'rounded-md', 'p-4', 'mb-4', 'bg-gray-50', 'relative');
+                newItem.innerHTML = `
+                    <button class="remove-item absolute top-2 right-2 text-red-500 hover:text-red-700 text-lg font-bold">&times;</button>
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium text-gray-700">Project Name</label>
+                        <input type="text" class="project-name mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="My Awesome Project">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium text-gray-700">Project Link (Optional)</label>
+                        <input type="url" class="project-link mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="https://github.com/myproject">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Description (one per line)</label>
+                        <textarea rows="3" class="project-description mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" placeholder="- Built a full-stack web application
+- Implemented user authentication and data storage"></textarea>
+                    </div>
+                `;
+                projectContainer.appendChild(newItem);
+                newItem.querySelector('.remove-item').addEventListener('click', () => {
+                    newItem.remove();
+                    debouncedUpdatePreview();
+                });
+                newItem.querySelectorAll('input, textarea').forEach(input => {
+                    input.addEventListener('input', debouncedUpdatePreview);
+                });
+            }
+
+
+            // Template selection
+            templateSelect.addEventListener('change', () => {
+                resumePreview.classList.remove('template-modern', 'template-sidebar');
+                resumePreview.classList.add(templateSelect.value);
+                debouncedUpdatePreview(); // Update preview in case template changes layout
+            });
+
+            // Theme color selection
+            colorPickerBtns.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove active border from all buttons
+                    colorPickerBtns.forEach(btn => btn.classList.remove('border-blue-700', 'border-emerald-700', 'border-violet-700', 'border-red-700', 'border-gray-700'));
+
+                    // Add active border to the clicked button
+                    const selectedColorClass = button.dataset.color;
+                    button.classList.add(`border-${selectedColorClass.split('-')[1]}-700`);
+
+                    // Apply theme to resume preview
+                    resumePreview.classList.remove('theme-blue', 'theme-green', 'theme-purple', 'theme-red', 'theme-gray');
+                    resumePreview.classList.add(selectedColorClass);
+                });
+            });
+
+            // Download PDF
+            downloadPdfBtn.addEventListener('click', () => {
+                // Ensure the preview is fully updated before PDF generation
+                updatePreview();
+
+                const element = resumePreview;
+                const opt = {
+                    margin:       [10, 10, 10, 10], // top, left, bottom, right
+                    filename:     'resume.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                // Show a loading message or spinner
+                downloadPdfBtn.textContent = 'Generating PDF...';
+                downloadPdfBtn.disabled = true;
+
+                html2pdf().set(opt).from(element).save().then(() => {
+                    downloadPdfBtn.textContent = 'Download as PDF';
+                    downloadPdfBtn.disabled = false;
+                });
+            });
+
+            // Initial update to populate preview with default values
+            updatePreview();
+        });
+    </script>
+</body>
+</html>
